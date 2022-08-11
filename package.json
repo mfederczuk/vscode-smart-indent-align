@@ -1,0 +1,57 @@
+{
+	"name": "smart-indent-align",
+	"displayName": "Smart Indent/Align",
+	"description": "Support for smart indentation and alignment",
+	"version": "0.1.0",
+	"publisher": "mfederczuk",
+	"categories": [
+		"Formatters",
+		"Other"
+	],
+	"engines": {
+		"vscode": "^1.70.0"
+	},
+	"homepage": "https://github.com/mfederczuk/vscide-smart-indent-align#readme",
+	"bugs": {
+		"url": "https://github.com/mfederczuk/vscide-smart-indent-align/issues",
+		"email": "federczuk.michael@protonmail.com"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/mfederczuk/vscide-smart-indent-align.git"
+	},
+	"license": "MPL-2.0 AND Apache-2.0",
+	"author": "Michael Federczuk <federczuk.michael@protonmail.com>",
+	"contributors": [
+		"Michael Federczuk <federczuk.michael@protonmail.com>"
+	],
+	"main": "out/extension.js",
+	"activationEvents": [ "*" ],
+	"scripts": {
+		"eslint": "npx --package=eslint -- eslint",
+		"ovsx": "npx --package=ovsx -- ovsx",
+		"tsc": "npx --package=typescript -- tsc",
+		"vsce": "npx --package=vsce -- vsce",
+
+		"lint": "npm run eslint -- src",
+		"build": "npm run tsc",
+		"build-watch": "npm run tsc -- --watch",
+		"clean": "rm -rf out",
+		"rebuild": "npm run clean && npm run build",
+
+		"prepare": "npm run clean && npm run lint && npm run build",
+		"vscode:prepublish": "npm run prepare",
+
+		"package": "npm run vsce -- package --allow-star-activation"
+	},
+	"devDependencies": {
+		"@types/node": "^18.7.5",
+		"@types/vscode": "^1.70.0",
+		"@typescript-eslint/eslint-plugin": "^5.33.1",
+		"@typescript-eslint/parser": "^5.33.1",
+		"eslint": "^8.22.0",
+		"ovsx": "^0.5.1",
+		"typescript": "^4.7.4",
+		"vsce": "^2.10.0"
+	}
+}

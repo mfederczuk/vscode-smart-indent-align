@@ -1,0 +1,14 @@
+# SPDX-License-Identifier: CC0-1.0
+
+**
+
+!package.json
+!package-lock.json
+
+!CHANGELOG.md
+!COPYING.txt
+!LICENSE.txt
+!LICENSES
+!README.txt
+
+!out
