@@ -26,6 +26,15 @@
 		"Michael Federczuk <federczuk.michael@protonmail.com>"
 	],
 	"main": "out/extension.js",
+	"contributes": {
+		"keybindings": [
+			{
+				"command": "smart-indent-align.newline",
+				"key": "enter",
+				"when": "editorTextFocus && !editorReadonly && !suggestWidgetVisible"
+			}
+		]
+	},
 	"activationEvents": [ "*" ],
 	"scripts": {
 		"eslint": "npx --package=eslint -- eslint",
