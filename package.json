@@ -32,6 +32,17 @@
 				"command": "smart-indent-align.newline",
 				"key": "enter",
 				"when": "editorTextFocus && !editorReadonly && !suggestWidgetVisible"
+			},
+
+			{
+				"command": "smart-indent-align.indent",
+				"key": "tab",
+				"when": "editorTextFocus && !editorReadonly && !editorTabMovesFocus && !suggestWidgetVisible && !inSnippetMode && config.editor.tabCompletion == off"
+			},
+			{
+				"command": "smart-indent-align.indent",
+				"key": "tab",
+				"when": "editorTextFocus && !editorReadonly && !editorTabMovesFocus && !suggestWidgetVisible && !inSnippetMode && config.editor.tabCompletion == on && !hasOtherSuggestions"
 			}
 		]
 	},
