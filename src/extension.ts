@@ -7,8 +7,11 @@ import * as vscode from "vscode";
 
 const EXTENSION_ID = "smart-indent-align";
 
+// TODO: move commands into distinct files
+
 const COMMAND_ID_NEWLINE = `${EXTENSION_ID}.newline`;
 const COMMAND_ID_INDENT  = `${EXTENSION_ID}.indent`;
+const COMMAND_ID_OUTDENT = `${EXTENSION_ID}.outdent`;
 
 const createIndentString = (textEditorOptions: vscode.TextEditorOptions) => {
 	if(!(textEditorOptions.insertSpaces)) {
@@ -107,11 +110,50 @@ const commandIndent = (textEditor: vscode.TextEditor, edit: vscode.TextEditorEdi
 
 //#endregion
 
+//#region command outdent
+
+const outdentLine = (lineNr: number, indentStr: string, textEditor: vscode.TextEditor, edit: vscode.TextEditorEdit) => {
+	const line: vscode.TextLine = textEditor.document.lineAt(lineNr);
+
+	if(!(line.text.startsWith(indentStr))) {
+		return;
+	}
+
+	const leadingIndentEnd: vscode.Position = line.range.start.translate({ characterDelta: indentStr.length });
+	const leadingIndentRange: vscode.Range = line.range.with({ end: leadingIndentEnd });
+
+	edit.delete(leadingIndentRange);
+};
+
+const outdentSelection = (selection: vscode.Selection,
+                          indentStr: string,
+                          textEditor: vscode.TextEditor,
+                          edit: vscode.TextEditorEdit) => {
+
+	const startLineNr: number = selection.start.line;
+	const endLineNr: number = selection.end.line;
+
+	for(let lineNr: number = startLineNr; lineNr <= endLineNr; ++lineNr) {
+		outdentLine(lineNr, indentStr, textEditor, edit);
+	}
+};
+
+const commandOutdent = (textEditor: vscode.TextEditor, edit: vscode.TextEditorEdit): void => {
+	const indentStr: string = createIndentString(textEditor.options);
+
+	textEditor.selections.forEach((selection: vscode.Selection) => {
+		outdentSelection(selection, indentStr, textEditor, edit);
+	});
+};
+
+//#endregion
+
 export function activate(context: vscode.ExtensionContext) {
 	console.log(`Activating ${EXTENSION_ID}`);
 
 	const newline = vscode.commands.registerTextEditorCommand(COMMAND_ID_NEWLINE, commandNewline);
 	const indent  = vscode.commands.registerTextEditorCommand(COMMAND_ID_INDENT,  commandIndent);
+	const outdent = vscode.commands.registerTextEditorCommand(COMMAND_ID_OUTDENT, commandOutdent);
 
-	context.subscriptions.push(newline, indent);
+	context.subscriptions.push(newline, indent, outdent);
 }
