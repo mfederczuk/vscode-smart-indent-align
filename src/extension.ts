@@ -9,9 +9,10 @@ const EXTENSION_ID = "smart-indent-align";
 
 // TODO: move commands into distinct files
 
-const COMMAND_ID_NEWLINE = `${EXTENSION_ID}.newline`;
-const COMMAND_ID_INDENT  = `${EXTENSION_ID}.indent`;
-const COMMAND_ID_OUTDENT = `${EXTENSION_ID}.outdent`;
+const COMMAND_ID_NEWLINE   = `${EXTENSION_ID}.newline`;
+const COMMAND_ID_INDENT    = `${EXTENSION_ID}.indent`;
+const COMMAND_ID_OUTDENT   = `${EXTENSION_ID}.outdent`;
+const COMMAND_ID_BACKSPACE = `${EXTENSION_ID}.backspace`;
 
 const createIndentString = (textEditorOptions: vscode.TextEditorOptions) => {
 	if(!(textEditorOptions.insertSpaces)) {
@@ -146,14 +147,61 @@ const commandOutdent = (textEditor: vscode.TextEditor, edit: vscode.TextEditorEd
 	});
 };
 
+
+
+//#endregion
+
+//#region command backspace
+
+const backspaceSelection = (selection: vscode.Selection, textEditor: vscode.TextEditor, edit: vscode.TextEditorEdit) => {
+	if(!(selection.isEmpty)) {
+		edit.delete(selection);
+		return;
+	}
+
+	if((selection.active.line === 0) && (selection.active.character === 0)) {
+		return;
+	}
+
+	if(selection.active.character > 0) {
+		if(textEditor.options.insertSpaces) {
+			// TODO: delete spaces till the previous tab stop (tab stop is every textEditor.options.tabSize characters)
+		}
+
+		const positionBeforeOldStart: vscode.Position = selection.start.translate({ characterDelta: -1 });
+		const rangeToDelete: vscode.Range = selection.with({ start: positionBeforeOldStart });
+
+		edit.delete(rangeToDelete);
+
+		return;
+	}
+
+	const upperLine: vscode.TextLine = textEditor.document.lineAt(selection.active.line - 1);
+
+	const lineBreakRange =
+		new vscode.Range(
+			upperLine.range.end,
+			selection.active,
+		);
+
+	edit.delete(lineBreakRange);
+};
+
+const commandBackspace = (textEditor: vscode.TextEditor, edit: vscode.TextEditorEdit): void => {
+	textEditor.selections.forEach((selection: vscode.Selection) => {
+		backspaceSelection(selection, textEditor, edit);
+	});
+};
+
 //#endregion
 
 export function activate(context: vscode.ExtensionContext) {
 	console.log(`Activating ${EXTENSION_ID}`);
 
-	const newline = vscode.commands.registerTextEditorCommand(COMMAND_ID_NEWLINE, commandNewline);
-	const indent  = vscode.commands.registerTextEditorCommand(COMMAND_ID_INDENT,  commandIndent);
-	const outdent = vscode.commands.registerTextEditorCommand(COMMAND_ID_OUTDENT, commandOutdent);
+	const newline   = vscode.commands.registerTextEditorCommand(COMMAND_ID_NEWLINE,   commandNewline);
+	const indent    = vscode.commands.registerTextEditorCommand(COMMAND_ID_INDENT,    commandIndent);
+	const outdent   = vscode.commands.registerTextEditorCommand(COMMAND_ID_OUTDENT,   commandOutdent);
+	const backspace = vscode.commands.registerTextEditorCommand(COMMAND_ID_BACKSPACE, commandBackspace);
 
-	context.subscriptions.push(newline, indent, outdent);
+	context.subscriptions.push(newline, indent, outdent, backspace);
 }

@@ -54,6 +54,12 @@
 				"command": "smart-indent-align.outdent",
 				"key": "shift+tab",
 				"when": "editorTextFocus && !editorReadonly && !editorTabMovesFocus && !suggestWidgetVisible && !inSnippetMode && config.editor.tabCompletion == on && !hasOtherSuggestions"
+			},
+
+			{
+				"command": "smart-indent-align.backspace",
+				"key": "backspace",
+				"when": "editorTextFocus && !editorReadonly"
 			}
 		]
 	},

@@ -34,6 +34,8 @@ This extensions... well *extends* the capabilities of VSCode's built-in indentat
 * When pressing enter, any leading whitespace (indentation + alignment) will be 1:1 copied to the new line
 * When configured to indent with tab characters (`editor.insertSpaces: false`), pressing tab within the indentation will
   insert a tab character, otherwise it will insert spaces
+* When configured to indent with space characters (`editor.insertSpaces: true`), pressing backspace delete the previous
+  `editor.tabSize` spaces
 
 ## Contributing ##
 
