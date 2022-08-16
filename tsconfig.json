@@ -1,0 +1,16 @@
+// SPDX-License-Identifier: CC0-1.0
+{
+	"compilerOptions": {
+		"forceConsistentCasingInFileNames": true,
+		"lib": ["ES2020"],
+		"module": "commonjs",
+		"noImplicitAny": true,
+		"outDir": "out",
+		"removeComments": true,
+		"rootDir": "src",
+		"sourceMap": true,
+		"strict": true,
+		"target": "ES2020",
+	},
+	"include": ["src"]
+}

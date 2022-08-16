@@ -49,6 +49,8 @@ Exceptions may apply to some of these rules, see the [`.editorconfig`](.editorco
 
   * **Indent with tabs & align with spaces**
 
+    See also: [_Indentation vs. Alignment — What's the difference?_](INDENT_VS_ALIGN.md)
+
     ```c
     // wrong
     enum·color·{

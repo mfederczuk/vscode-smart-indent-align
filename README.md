@@ -10,13 +10,28 @@
 
 ## About ##
 
+> An extension for those who know the difference between indentation and alignment
+
 **Smart Indent/Align** is a [VSCode] extension that adds smart indentation and alignment.
 
+* [_Indentation vs. Alignment — What's the difference?_](INDENT_VS_ALIGN.md)
+
+Even though indentation *should* be done with tabs, and alignment *should* be done with spaces — this extension also
+supports using spaces as indentation `editor.insertSpaces: true`. (though only to some degree)
+
 This is an unofficial spiritual successor to [j-zeppenfeld's Tab-Indent Space-Align] extension,
-which — unfortunately — has been abandoned.
+which unfortunately seems to have been abandoned.
 
 [VSCode]: <https://github.com/microsoft/vscode> "microsoft/vscode: Visual Studio Code"
 [j-zeppenfeld's Tab-Indent Space-Align]: <https://github.com/j-zeppenfeld/tab-indent-space-align> "j-zeppenfeld/tab-indent-space-align: A Visual Studio Code extension for those who know the difference between indentation and alignment."
+
+## Features ##
+
+This extensions... well *extends* the capabilities of VSCode's built-in indentation and alignment support.
+
+* When pressing enter, any leading whitespace (indentation + alignment) will be 1:1 copied to the new line
+* When configured to indent with tab characters (`editor.insertSpaces: false`), pressing tab within the indentation will
+  insert a tab character, otherwise it will insert spaces
 
 ## Contributing ##
 
