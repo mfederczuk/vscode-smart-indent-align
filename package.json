@@ -41,29 +41,29 @@
 			{
 				"command": "smart-indent-align.newline",
 				"key": "enter",
-				"when": "editorTextFocus && !editorReadonly && !suggestWidgetVisible"
+				"when": "config.smart-indent-align.enabled && editorTextFocus && !editorReadonly && !suggestWidgetVisible"
 			},
 
 			{
 				"command": "smart-indent-align.indent",
 				"key": "tab",
-				"when": "editorTextFocus && !editorReadonly && !editorTabMovesFocus && !suggestWidgetVisible && !inSnippetMode && config.editor.tabCompletion == off"
+				"when": "config.smart-indent-align.enabled && editorTextFocus && !editorReadonly && !editorTabMovesFocus && !suggestWidgetVisible && !inSnippetMode && config.editor.tabCompletion == off"
 			},
 			{
 				"command": "smart-indent-align.indent",
 				"key": "tab",
-				"when": "editorTextFocus && !editorReadonly && !editorTabMovesFocus && !suggestWidgetVisible && !inSnippetMode && config.editor.tabCompletion == on && !hasOtherSuggestions"
+				"when": "config.smart-indent-align.enabled && editorTextFocus && !editorReadonly && !editorTabMovesFocus && !suggestWidgetVisible && !inSnippetMode && config.editor.tabCompletion == on && !hasOtherSuggestions"
 			},
 
 			{
 				"command": "smart-indent-align.outdent",
 				"key": "shift+tab",
-				"when": "editorTextFocus && !editorReadonly && !editorTabMovesFocus && !suggestWidgetVisible && !inSnippetMode && config.editor.tabCompletion == off"
+				"when": "config.smart-indent-align.enabled && editorTextFocus && !editorReadonly && !editorTabMovesFocus && !suggestWidgetVisible && !inSnippetMode && config.editor.tabCompletion == off"
 			},
 			{
 				"command": "smart-indent-align.outdent",
 				"key": "shift+tab",
-				"when": "editorTextFocus && !editorReadonly && !editorTabMovesFocus && !suggestWidgetVisible && !inSnippetMode && config.editor.tabCompletion == on && !hasOtherSuggestions"
+				"when": "config.smart-indent-align.enabled && editorTextFocus && !editorReadonly && !editorTabMovesFocus && !suggestWidgetVisible && !inSnippetMode && config.editor.tabCompletion == on && !hasOtherSuggestions"
 			}
 		]
 	},
