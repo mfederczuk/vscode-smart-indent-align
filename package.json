@@ -67,7 +67,12 @@
 			}
 		]
 	},
-	"activationEvents": [ "*" ],
+	"activationEvents": [
+		"onCommand:smart-indent-align.newline",
+		"onCommand:smart-indent-align.indent",
+		"onCommand:smart-indent-align.tab",
+		"onCommand:smart-indent-align.outdent"
+	 ],
 	"scripts": {
 		"eslint": "npx --package=eslint -- eslint",
 		"ovsx": "npx --package=ovsx -- ovsx",
@@ -83,7 +88,7 @@
 		"prepare": "npm run clean && npm run lint && npm run build",
 		"vscode:prepublish": "npm run prepare",
 
-		"package": "npm run vsce -- package --allow-star-activation"
+		"package": "npm run vsce -- package"
 	},
 	"devDependencies": {
 		"@types/node": "^18.7.5",
