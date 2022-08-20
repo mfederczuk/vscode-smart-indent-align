@@ -7,11 +7,36 @@ import * as vscode from "vscode";
 
 const EXTENSION_ID = "smart-indent-align";
 
+const CONFIG_KEY_ENABLED = "enabled";
+
 // TODO: move commands into distinct files
 
 const COMMAND_ID_NEWLINE = `${EXTENSION_ID}.newline`;
 const COMMAND_ID_INDENT  = `${EXTENSION_ID}.indent`;
 const COMMAND_ID_OUTDENT = `${EXTENSION_ID}.outdent`;
+
+interface Config {
+	readonly enabled: boolean;
+}
+
+const extractConfig = (workspaceConfiguration: vscode.WorkspaceConfiguration): Config => {
+	let enabled = true;
+
+	if(workspaceConfiguration.has(CONFIG_KEY_ENABLED)) {
+		enabled = !!workspaceConfiguration.get(CONFIG_KEY_ENABLED);
+	}
+
+	return {
+		enabled,
+	};
+};
+
+const getConfig = (document: vscode.TextDocument): Config => {
+	const workspaceConfiguration: vscode.WorkspaceConfiguration =
+		vscode.workspace.getConfiguration(EXTENSION_ID, document);
+
+	return extractConfig(workspaceConfiguration);
+};
 
 const createIndentString = (textEditorOptions: vscode.TextEditorOptions) => {
 	if(!(textEditorOptions.insertSpaces)) {
@@ -23,22 +48,53 @@ const createIndentString = (textEditorOptions: vscode.TextEditorOptions) => {
 
 //#region command newline
 
-const newlineSelection = (selection: vscode.Selection, textEditor: vscode.TextEditor, edit: vscode.TextEditorEdit) => {
+const newlineSelection = (selection: vscode.Selection,
+                          config: Config,
+                          textEditor: vscode.TextEditor,
+                          edit: vscode.TextEditorEdit) => {
+
 	const startLine: vscode.TextLine = textEditor.document.lineAt(selection.start);
 
-	const leadingWhitespace: string = startLine.text
-		.substring(
-			0,
-			Math.min(startLine.firstNonWhitespaceCharacterIndex, selection.start.character),
-		);
+	const leadingWhitespace: string = ((): string => {
+		if(config.enabled) {
+			return startLine.text
+				.substring(
+					0,
+					Math.min(startLine.firstNonWhitespaceCharacterIndex, selection.start.character),
+				);
+		}
+
+		if(textEditor.options.insertSpaces) {
+			return " ".repeat(startLine.firstNonWhitespaceCharacterIndex);
+		}
+
+		const startLeadingWhitespace: string = startLine.text.substring(0, startLine.firstNonWhitespaceCharacterIndex);
+
+		const tabSize = (textEditor.options.tabSize as number);
+
+		let leadingWhitespaceWidth = 0;
+		for(const ch of startLeadingWhitespace) {
+			if(ch !== "\t") {
+				++leadingWhitespaceWidth;
+				continue;
+			}
+
+			leadingWhitespaceWidth += (tabSize - (leadingWhitespaceWidth % tabSize));
+		}
+
+		return "\t".repeat(Math.floor(leadingWhitespaceWidth / tabSize)) +
+		       " ".repeat(leadingWhitespaceWidth % tabSize);
+	})();
 
 	edit.delete(selection);
 	edit.insert(selection.start, "\n" + leadingWhitespace);
 };
 
 const commandNewline = (textEditor: vscode.TextEditor, edit: vscode.TextEditorEdit): void => {
+	const config: Config = getConfig(textEditor.document);
+
 	textEditor.selections.forEach((selection: vscode.Selection) => {
-		newlineSelection(selection, textEditor, edit);
+		newlineSelection(selection, config, textEditor, edit);
 	});
 };
 
@@ -103,6 +159,14 @@ const indentSelection = (selection: vscode.Selection, textEditor: vscode.TextEdi
 };
 
 const commandIndent = (textEditor: vscode.TextEditor, edit: vscode.TextEditorEdit): void => {
+	const config: Config = getConfig(textEditor.document);
+
+	if(!(config.enabled)) {
+		// vscode.commands.executeCommand("editor.action.indentLine");
+		vscode.commands.executeCommand("tab");
+		return;
+	}
+
 	textEditor.selections.forEach((selection: vscode.Selection) => {
 		indentSelection(selection, textEditor, edit);
 	});
@@ -139,6 +203,13 @@ const outdentSelection = (selection: vscode.Selection,
 };
 
 const commandOutdent = (textEditor: vscode.TextEditor, edit: vscode.TextEditorEdit): void => {
+	const config: Config = getConfig(textEditor.document);
+
+	if(!(config.enabled)) {
+		vscode.commands.executeCommand("outdent");
+		return;
+	}
+
 	const indentStr: string = createIndentString(textEditor.options);
 
 	textEditor.selections.forEach((selection: vscode.Selection) => {

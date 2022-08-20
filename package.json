@@ -33,7 +33,8 @@
 				"smart-indent-align.enabled": {
 					"type": "boolean",
 					"default": true,
-					"description": "Specifies whether or not Smart Indent/Align is enabled"
+					"description": "Specifies whether or not Smart Indent/Align is enabled",
+					"scope": "language-overridable"
 				}
 			}
 		},
