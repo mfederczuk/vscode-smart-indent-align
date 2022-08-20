@@ -11,6 +11,7 @@ const EXTENSION_ID = "smart-indent-align";
 
 const COMMAND_ID_NEWLINE = `${EXTENSION_ID}.newline`;
 const COMMAND_ID_INDENT  = `${EXTENSION_ID}.indent`;
+const COMMAND_ID_TAB     = `${EXTENSION_ID}.tab`;
 const COMMAND_ID_OUTDENT = `${EXTENSION_ID}.outdent`;
 
 const createIndentString = (textEditorOptions: vscode.TextEditorOptions) => {
@@ -46,23 +47,42 @@ const commandNewline = (textEditor: vscode.TextEditor, edit: vscode.TextEditorEd
 
 //#region command indent
 
-const indentSelection = (selection: vscode.Selection, textEditor: vscode.TextEditor, edit: vscode.TextEditorEdit) => {
-	// indent every selected line when selections spans over multiple lines
+const indentSelection = (selection: vscode.Selection,
+                         indentStr: string,
+                         textEditor: vscode.TextEditor,
+                         edit: vscode.TextEditorEdit) => {
+
+	const startLineIndex: number = selection.start.line;
+	const endLineIndex: number = selection.end.line;
+
+	for(let lineIndex: number = startLineIndex; lineIndex <= endLineIndex; ++lineIndex) {
+		const line: vscode.TextLine = textEditor.document.lineAt(lineIndex);
+
+		if(line.range.isEmpty) {
+			continue;
+		}
+
+		edit.insert(new vscode.Position(lineIndex, 0), indentStr);
+	}
+};
+
+const commandIndent = (textEditor: vscode.TextEditor, edit: vscode.TextEditorEdit): void => {
+	const indentStr: string = createIndentString(textEditor.options);
+
+	textEditor.selections.forEach((selection: vscode.Selection) => {
+		indentSelection(selection, indentStr, textEditor, edit);
+	});
+};
+
+//#endregion
+
+//#region command tab
+
+const tabSelection = (selection: vscode.Selection, textEditor: vscode.TextEditor, edit: vscode.TextEditorEdit) => {
 	if(!(selection.isEmpty)) {
 		const indentStr: string = createIndentString(textEditor.options);
 
-		const startLineIndex: number = selection.start.line;
-		const endLineIndex: number = selection.end.line;
-
-		for(let lineIndex: number = startLineIndex; lineIndex <= endLineIndex; ++lineIndex) {
-			const line: vscode.TextLine = textEditor.document.lineAt(lineIndex);
-
-			if(line.range.isEmpty) {
-				continue;
-			}
-
-			edit.insert(new vscode.Position(lineIndex, 0), indentStr);
-		}
+		indentSelection(selection, indentStr, textEditor, edit);
 
 		return;
 	}
@@ -102,9 +122,9 @@ const indentSelection = (selection: vscode.Selection, textEditor: vscode.TextEdi
 	edit.insert(selection.active, str);
 };
 
-const commandIndent = (textEditor: vscode.TextEditor, edit: vscode.TextEditorEdit): void => {
+const commandTab = (textEditor: vscode.TextEditor, edit: vscode.TextEditorEdit): void => {
 	textEditor.selections.forEach((selection: vscode.Selection) => {
-		indentSelection(selection, textEditor, edit);
+		tabSelection(selection, textEditor, edit);
 	});
 };
 
@@ -153,7 +173,8 @@ export function activate(context: vscode.ExtensionContext) {
 
 	const newline = vscode.commands.registerTextEditorCommand(COMMAND_ID_NEWLINE, commandNewline);
 	const indent  = vscode.commands.registerTextEditorCommand(COMMAND_ID_INDENT,  commandIndent);
+	const tab     = vscode.commands.registerTextEditorCommand(COMMAND_ID_TAB,     commandTab);
 	const outdent = vscode.commands.registerTextEditorCommand(COMMAND_ID_OUTDENT, commandOutdent);
 
-	context.subscriptions.push(newline, indent, outdent);
+	context.subscriptions.push(newline, indent, tab, outdent);
 }

@@ -35,12 +35,12 @@
 			},
 
 			{
-				"command": "smart-indent-align.indent",
+				"command": "smart-indent-align.tab",
 				"key": "tab",
 				"when": "editorTextFocus && !editorReadonly && !editorTabMovesFocus && !suggestWidgetVisible && !inSnippetMode && config.editor.tabCompletion == off"
 			},
 			{
-				"command": "smart-indent-align.indent",
+				"command": "smart-indent-align.tab",
 				"key": "tab",
 				"when": "editorTextFocus && !editorReadonly && !editorTabMovesFocus && !suggestWidgetVisible && !inSnippetMode && config.editor.tabCompletion == on && !hasOtherSuggestions"
 			},
