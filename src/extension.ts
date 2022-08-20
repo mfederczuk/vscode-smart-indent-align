@@ -4,6 +4,9 @@
  */
 
 import * as vscode from "vscode";
+import { Command } from "./command";
+import { Commands } from "./commands";
+import "./utils";
 
 const EXTENSION_ID = "smart-indent-align";
 
@@ -168,13 +171,16 @@ const commandOutdent = (textEditor: vscode.TextEditor, edit: vscode.TextEditorEd
 
 //#endregion
 
+const commands: readonly Command[] = [
+	new Commands.Indent(EXTENSION_ID),
+];
+
 export function activate(context: vscode.ExtensionContext) {
 	console.log(`Activating ${EXTENSION_ID}`);
+	context.extension.id
 
-	const newline = vscode.commands.registerTextEditorCommand(COMMAND_ID_NEWLINE, commandNewline);
-	const indent  = vscode.commands.registerTextEditorCommand(COMMAND_ID_INDENT,  commandIndent);
-	const tab     = vscode.commands.registerTextEditorCommand(COMMAND_ID_TAB,     commandTab);
-	const outdent = vscode.commands.registerTextEditorCommand(COMMAND_ID_OUTDENT, commandOutdent);
+	const disposables: readonly vscode.Disposable[] = commands
+		.map(vscode.commands.registerTextEditorCommand);
 
-	context.subscriptions.push(newline, indent, tab, outdent);
+	context.subscriptions.push(...disposables);
 }
