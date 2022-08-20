@@ -27,6 +27,16 @@
 	],
 	"main": "out/extension.js",
 	"contributes": {
+		"commands": [
+			{
+				"command": "smart-indent-align.indent",
+				"title": "Smart Indent"
+			},
+			{
+				"command": "smart-indent-align.outdent",
+				"title": "Smart Outdent"
+			}
+		],
 		"keybindings": [
 			{
 				"command": "smart-indent-align.newline",
