@@ -13,12 +13,15 @@ const COMMAND_ID_NEWLINE = `${EXTENSION_ID}.newline`;
 const COMMAND_ID_INDENT  = `${EXTENSION_ID}.indent`;
 const COMMAND_ID_OUTDENT = `${EXTENSION_ID}.outdent`;
 
-const createIndentString = (textEditorOptions: vscode.TextEditorOptions) => {
-	if(!(textEditorOptions.insertSpaces)) {
+
+const createIndentString = (textEditor: vscode.TextEditor) => {
+	if(!(textEditor.options.insertSpaces)) {
 		return "\t";
 	}
-
-	return " ".repeat(textEditorOptions.tabSize as number);
+	const tabSize : number = textEditor.options.tabSize as number;
+	const cursorPos : number = textEditor.selection.active.character;
+	const nbrOfSpaces : number = tabSize - (cursorPos % tabSize);
+	return " ".repeat(nbrOfSpaces);
 };
 
 //#region command newline
@@ -31,7 +34,7 @@ const newlineSelection = (selection: vscode.Selection, textEditor: vscode.TextEd
 			0,
 			Math.min(startLine.firstNonWhitespaceCharacterIndex, selection.start.character),
 		);
-
+     
 	edit.delete(selection);
 	edit.insert(selection.start, "\n" + leadingWhitespace);
 };
@@ -49,7 +52,7 @@ const commandNewline = (textEditor: vscode.TextEditor, edit: vscode.TextEditorEd
 const indentSelection = (selection: vscode.Selection, textEditor: vscode.TextEditor, edit: vscode.TextEditorEdit) => {
 	// indent every selected line when selections spans over multiple lines
 	if(!(selection.isEmpty)) {
-		const indentStr: string = createIndentString(textEditor.options);
+		const indentStr: string = createIndentString(textEditor);
 
 		const startLineIndex: number = selection.start.line;
 		const endLineIndex: number = selection.end.line;
@@ -69,7 +72,7 @@ const indentSelection = (selection: vscode.Selection, textEditor: vscode.TextEdi
 
 	// normal behavior when indenting with spaces
 	if(textEditor.options.insertSpaces) {
-		const indentStr: string = createIndentString(textEditor.options);
+		const indentStr: string = createIndentString(textEditor);
 
 		edit.delete(selection);
 		edit.insert(selection.active, indentStr);
@@ -139,7 +142,7 @@ const outdentSelection = (selection: vscode.Selection,
 };
 
 const commandOutdent = (textEditor: vscode.TextEditor, edit: vscode.TextEditorEdit): void => {
-	const indentStr: string = createIndentString(textEditor.options);
+	const indentStr: string = createIndentString(textEditor);
 
 	textEditor.selections.forEach((selection: vscode.Selection) => {
 		outdentSelection(selection, indentStr, textEditor, edit);
