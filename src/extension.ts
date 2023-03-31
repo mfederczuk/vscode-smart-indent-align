@@ -18,6 +18,8 @@ const createIndentString = (textEditor: vscode.TextEditor) => {
 	if(!(textEditor.options.insertSpaces)) {
 		return "\t";
 	}
+	// insert the required number of spaces, such that the cursor alignes
+	// with tabs
 	const tabSize : number = textEditor.options.tabSize as number;
 	const cursorPos : number = textEditor.selection.active.character;
 	const nbrOfSpaces : number = tabSize - (cursorPos % tabSize);
