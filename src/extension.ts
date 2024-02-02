@@ -78,7 +78,7 @@ const indentSelection = (selection: vscode.Selection, textEditor: vscode.TextEdi
 	}
 
 	// detect where indentation ends -> indent line if cursor is at indentation, otherwise
-	//                                  insert `textEditor.options.tabSize` amount of spaces
+	//                                  insert spaces to reach tabstop as per `textEditor.options.tabSize`
 
 	const indentEndCharacter: number = textEditor.document
 		.lineAt(selection.active)
@@ -95,9 +95,13 @@ const indentSelection = (selection: vscode.Selection, textEditor: vscode.TextEdi
 	//          const x:   number = ...;
 	//          const bar: number = ...;
 
+	const tillNextStop: number = textEditor.options.tabSize - (
+		(selection.active.character - indentEndCharacter) % textEditor.options.tabSize
+	)
+
 	const str: string = ((selection.active.character <= indentEndCharacter)
 	                     ? "\t"
-	                     : " ".repeat(textEditor.options.tabSize as number));
+	                     : " ".repeat(tillNextStop));
 
 	edit.insert(selection.active, str);
 };
