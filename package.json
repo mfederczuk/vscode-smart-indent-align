@@ -8,9 +8,6 @@
 		"Formatters",
 		"Other"
 	],
-	"engines": {
-		"vscode": "^1.70.0"
-	},
 	"homepage": "https://github.com/mfederczuk/vscide-smart-indent-align#readme",
 	"bugs": {
 		"url": "https://github.com/mfederczuk/vscide-smart-indent-align/issues",
@@ -62,12 +59,12 @@
 		"eslint": "npx --package=eslint -- eslint",
 		"ovsx": "npx --package=ovsx -- ovsx",
 		"tsc": "npx --package=typescript -- tsc",
-		"vsce": "npx --package=vsce -- vsce",
+		"vsce": "npx --package=@vscode/vsce -- vsce",
 
-		"lint": "npm run eslint -- src",
+		"lint": "npm run eslint",
 		"build": "npm run tsc",
 		"build-watch": "npm run tsc -- --watch",
-		"clean": "rm -rf out",
+		"clean": "rm -rf -- out",
 		"rebuild": "npm run clean && npm run build",
 
 		"prepare": "npm run clean && npm run lint && npm run build",
@@ -75,14 +72,19 @@
 
 		"package": "npm run vsce -- package --allow-star-activation"
 	},
+	"engines": {
+		"vscode": "^1.70.0"
+	},
 	"devDependencies": {
-		"@types/node": "^18.7.5",
+		"@eslint/js": "^9.22.0",
+		"@stylistic/eslint-plugin": "^4.2.0",
+		"@types/node": "^22.13.10",
 		"@types/vscode": "^1.70.0",
-		"@typescript-eslint/eslint-plugin": "^5.33.1",
-		"@typescript-eslint/parser": "^5.33.1",
-		"eslint": "^8.22.0",
-		"ovsx": "^0.5.1",
-		"typescript": "^4.7.4",
-		"vsce": "^2.10.0"
+		"@vscode/vsce": "^3.3.0",
+		"eslint": "^9.22.0",
+		"npm-check-updates": "^17.1.15",
+		"ovsx": "^0.10.1",
+		"typescript": "^5.8.2",
+		"typescript-eslint": "^8.26.1"
 	}
 }

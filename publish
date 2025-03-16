@@ -3,8 +3,22 @@
 # vim: set syntax=sh
 # code: language=shellscript
 
-# Copyright (c) 2022 Michael Federczuk
+# Copyright (c) 2025 Michael Federczuk
 # SPDX-License-Identifier: MPL-2.0 AND Apache-2.0
+
+#region preamble
+
+case "$-" in
+	(*'i'*)
+		if \command test -n "${BASH_VERSION-}"; then
+			# using `eval` here in case a non-Bash shell tries to parse this branch even if the condition is false
+			\command eval "\\command printf '%s: ' \"\${BASH_SOURCE[0]}\" >&2"
+		fi
+
+		\command printf 'script was called interactively\n' >&2
+		return 124
+		;;
+esac
 
 set -o errexit
 set -o nounset
@@ -12,26 +26,49 @@ set -o nounset
 # enabling POSIX-compliant behavior for GNU programs
 export POSIXLY_CORRECT=yes POSIX_ME_HARDER=yes
 
-log() {
-	echo "$@" >&2
+if [ -z "${BASH_VERSION-}" ]; then
+	if [ "${0#/}" = "$0" ]; then
+		argv0="$0"
+	else
+		argv0="$(basename -- "$0" && printf x)"
+		argv0="${argv0%"$(printf '\nx')"}"
+	fi
+	readonly argv0
+
+	printf '%s: GNU Bash is required for this script\n' "$argv0" >&2
+	exit 1
+fi
+
+declare argv0
+if [[ ! "$0" =~ ^'/' ]]; then
+	argv0="$0"
+else
+	argv0="$(basename -- "$0" && printf x)"
+	argv0="${argv0%$'\nx'}"
+fi
+readonly argv0
+
+#endregion
+
+#region function definitions
+
+function log() {
+	printf '%s\n' "$1" >&2
 }
 
-command_exists() {
+function command_exists() {
 	command -v "$1" > '/dev/null'
 }
 
-assert_program_exists() {
-	local program
-
-	for program in "$@"; do
-		if ! command_exists "$program"; then
-			log "$0: $program: program missing"
-			exit 27
-		fi
-	done
+function vsce() {
+	npm run vsce -- "$@"
 }
 
+function ovsx() {
+	npm run ovsx -- "$@"
+}
 
+#endregion
 
 if [ $# -gt 0 ]; then
 	log "$0: too many arguments: $#"
@@ -39,39 +76,48 @@ if [ $# -gt 0 ]; then
 fi
 
 
-assert_program_exists realpath npm npx jq git
+declare program
+for program in "$@"; do
+	if command_exists "$program"; then
+		continue
+	fi
 
-vsce() {
-	npm run vsce -- "$@"
-}
-
-ovsx() {
-	npm run ovsx -- "$@"
-}
+	log "$argv0: $program: program missing"
+	exit 27
+done
+unset -v program
 
 
-# region prompting for target marketplace
+declare root_dir_path
+root_dir_path="$(dirname -- "$0" && printf x)"
+root_dir_path="${root_dir_path%$'\nx'}"
 
-readonly enum_marketplace_msvs='msvs' \
-         enum_marketplace_openvsx='openvsx'
+cd -- "$root_dir_path"
+
+unset -v root_dir_path
+
+#region prompting for target marketplace
+
+readonly marketplace_msvs='msvs' \
+         marketplace_openvsx='openvsx'
+
+{
+	printf 'To which marketplace/registry do you want to publish to?\n'
+	printf ' 1) Microsoft Visual Studio Marketplace\n'
+	printf ' 2) Eclipse Open VSX Registry\n'
+} >&2
+read -rp '> ' ans
 
 declare target_marketplace
 
-{
-	echo 'To which marketplace/registry do you want to publish to?'
-	echo ' 1) Microsoft Visual Studio Marketplace'
-	echo ' 2) Eclipse Open VSX Registry'
-} >&2
-read -r -p '> ' ans
-
 case "$ans" in
 	(1)
-		target_marketplace="$enum_marketplace_msvs"
-		log 'Targetting the Microsoft Visual Studio Marketplace.'
+		target_marketplace="$marketplace_msvs"
+		log 'Targeting Microsoft Visual Studio Marketplace.'
 		;;
 	(2)
-		target_marketplace="$enum_marketplace_openvsx"
-		log "Targetting Eclipse's Open VSX Registry."
+		target_marketplace="$marketplace_openvsx"
+		log "Targeting Eclipse Open VSX Registry."
 		;;
 	(*)
 		if [ -z "$ans" ]; then
@@ -88,101 +134,105 @@ unset -v ans
 
 readonly target_marketplace
 
-log
+#endregion
 
-# endregion
+log '' # empty line
 
-# region reading information from package.json
-
-declare root_dir_path
-root_dir_path="$(realpath -- "$0")"
-root_dir_path="$(dirname "$root_dir_path")"
-root_dir_path="$(realpath -s --relative-to=. -- "$root_dir_path")"
-readonly root_dir_path
-
-declare package_json_file_path="$root_dir_path/package.json"
-package_json_file_path="$(realpath -s --relative-to=. -- "$package_json_file_path")"
-readonly package_json_file_path
+#region reading information from package.json
 
 declare package_name
-package_name="$(jq -r '."name"' -- "$package_json_file_path")"
+package_name="$(jq -r '."name"' -- 'package.json')"
 readonly package_name
 
 declare package_version
-package_version="$(jq -r '."version"' -- "$package_json_file_path")"
+package_version="$(jq -r '."version"' -- 'package.json')"
 readonly package_version
 
 declare package_publisher
-package_publisher="$(jq -r '."publisher"' -- "$package_json_file_path")"
+package_publisher="$(jq -r '."publisher"' -- 'package.json')"
 readonly package_publisher
 
-# endregion
+#endregion
 
-# region checking if the correct publisher is logged in (MS VS Marketplace-only)
+#region checking if the package publisher is logged in (MS VS Marketplace-only)
 
-if [ "$target_marketplace" = "$enum_marketplace_msvs" ]; then
-	declare publisher_logged_in=false
+if [ "$target_marketplace" = "$marketplace_msvs" ]; then
+	declare is_package_publisher_logged_in
+	is_package_publisher_logged_in=false
 
 	declare logged_in_publisher
 	while read -r logged_in_publisher; do
 		if [ "$logged_in_publisher" = "$package_publisher" ]; then
-			publisher_logged_in=true
+			is_package_publisher_logged_in=true
 			break
 		fi
 	done < <(vsce ls-publishers)
 	unset -v logged_in_publisher
 
-	if ! $publisher_logged_in; then
-		log "$0: publisher '$package_publisher' (from package.json) is not logged in"
+	if ! $is_package_publisher_logged_in; then
+		log "$argv0: publisher '$package_publisher' (from package.json) is not logged in"
 		exit 48
 	fi
 
-	unset -v publisher_logged_in
+	unset -v is_package_publisher_logged_in
 fi
 
-# endregion
+#endregion
 
-# region checking git stuff
+#region checking Git stuff
 
-declare tmp
-tmp="$(git --no-pager describe --always --dirty)"
+declare git_describe_output
+git_describe_output="$(git --no-pager describe --always --dirty)"
 
-if [[ "$tmp" =~ '-dirty'$ ]]; then
-	log "$0: worktree is dirty, aborting publishing"
+if [[ "$git_describe_output" =~ '-dirty'$ ]]; then
+	log "$argv0: the working tree is dirty, aborting publishing"
 	exit 49
 fi
 
-unset -v tmp
+unset -v git_describe_output
 
 
-declare tag_name
-tag_name=$(git --no-pager name-rev --tags --refs='v*' --name-only -- HEAD)
-tag_name="${tag_name%"^0"}" # sometimes this is added, idk why
-readonly tag_name
+declare -a tag_names
+tag_names=()
+mapfile -t tag_names < <(git tag --list --points-at=HEAD 'v*.*.*')
+readonly tag_names
 
-if [ "$tag_name" = 'undefined' ]; then
-	log "$0: no Git tag (v*) on HEAD"
-	exit 50
-fi
+case ${#tag_names[@]} in
+	(0)
+		log "$argv0: no Git tag (v*.*.*) on HEAD"
+		exit 50
+		;;
+	(1)
+		declare tag_name
+		tag_name="${tag_names[0]}"
 
-if [ "v$package_version" != "$tag_name" ]; then
-	log "$0: Git tag ($tag_name) does not match version in 'package.json' (v$package_version)"
-	exit 51
-fi
+		if [ "v$package_version" != "$tag_name" ]; then
+			log "$argv0: Git tag ($tag_name) on HEAD does not match version in 'package.json' (v$package_version)"
+			exit 52
+		fi
 
-# endregion
+		unset -v tag_name
+		;;
+	(*)
+		log "$argv0: multiple Git tags (v*.*.*) on HEAD"
+		exit 51
+		;;
+esac
 
-# region prompting for Open VSX PAT
+#endregion
 
-if [ "$target_marketplace" = "$enum_marketplace_openvsx" ]; then
-	read -rs -p 'Please enter your Open VSX public access token (PAT): ' openvsx_pat
+#region prompting for Open VSX PAT
+
+if [ "$target_marketplace" = "$marketplace_openvsx" ]; then
+	declare openvsx_pat
+	read -rsp 'Please enter your Open VSX public access token (PAT): ' openvsx_pat
 	readonly openvsx_pat
 
-	log # newline because read -s
+	log '' # newline because read -s
 
 	if command_exists uuidparse; then
 		if uuidparse --noheadings --output VARIANT,TYPE,TIME --raw "$openvsx_pat" | grep -Eq '(^| )invalid( |$)'; then
-			read -r -p 'The entered PAT is not a valid UUID. Continue anyway? [y/N] ' ans
+			read -rp 'The entered PAT is not a valid UUID. Continue anyway? [y/N] ' ans
 
 			case "$ans" in
 				(['yY']*)
@@ -197,17 +247,17 @@ if [ "$target_marketplace" = "$enum_marketplace_openvsx" ]; then
 			unset -v ans
 		fi
 	else
-		log "Command 'uuidparse' not found, cannot validate PAT."
+		log "Program 'uuidparse' missing, cannot validate PAT."
 	fi
 
-	log
+	log ''
 fi
 
-# endregion
+#endregion
 
-# region publishing
+#region publishing
 
-read -r -p 'Ready to publish. Proceed? [y/N] ' ans
+read -rp 'Ready to publish. Proceed? [y/N] ' ans
 
 case "$ans" in
 	(['yY']*)
@@ -215,7 +265,7 @@ case "$ans" in
 		;;
 	(*)
 		log 'Aborted.'
-		exit 32
+		exit 34
 		;;
 esac
 
@@ -223,20 +273,20 @@ unset -v ans
 
 
 case "$target_marketplace" in
-	("$enum_marketplace_msvs")
+	("$marketplace_msvs")
 		npm run package
 		vsce publish
 		;;
-	("$enum_marketplace_openvsx")
-		declare vsix_file_path="$root_dir_path/$package_name-$package_version.vsix"
-		vsix_file_path="$(realpath -s --relative-to=. -- "$vsix_file_path")"
+	("$marketplace_openvsx")
+		declare vsix_file_path
+		vsix_file_path="$package_name-$package_version.vsix"
 		readonly vsix_file_path
 
 		npm run package
 
-		if [ ! -e "$vsix_file_path" ]; then
-			log "Expected the final VSIX file to be located under '$vsix_file_path', but was wrong. Publishing needs to be completed manually. Aborting."
-			exit 52
+		if [ ! -f "$vsix_file_path" ]; then
+			log "Expected the VSIX file to be named '$vsix_file_path', but was wrong. Aborting."
+			exit 53
 		fi
 
 		ovsx --pat "$openvsx_pat" publish "$vsix_file_path"
@@ -245,4 +295,4 @@ esac
 
 log 'Done.'
 
-# endregion
+#endregion
