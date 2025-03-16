@@ -11,7 +11,7 @@ This is indentation:
 
 ```typescript
 function func() {
-→	if(condition) {
+→	if (condition) {
 →	→	// ...
 →	}
 }
@@ -23,7 +23,7 @@ function func() {
 * Tab characters are recommended because:
   * Good separation between indentation (with tab characters) and alignment (with space characters)
   * The width of tab characters (or just the "tab width") is configurable, which is important for accessability reasons:
-    [_"Nobody talks about the real reason to use Tabs over Spaces"_ — reddit.com/r/javascript]
+    [_"Nobody talks about the real reason to use Tabs over Spaces"_ — reddit.com/r/javascript][reddit_post]
   * Changing the tab width does not mess with alignment (more on that later)
 * Space characters are not recommended because:
   * It's almost indistinguishable from alignment with space characters
@@ -94,6 +94,6 @@ Because when we change the tab width but keep the amount of tabs, this happens:
 
 > Well then just don't change the tab width! Or just just spaces for indentation!
 
-Do I need to remind you? [_"Nobody talks about the real reason to use Tabs over Spaces"_]
+Do I need to remind you? [_"Nobody talks about the real reason to use Tabs over Spaces"_][reddit_post]
 
-[_"Nobody talks about the real reason to use Tabs over Spaces"_]: <https://redd.it/c8drjo>
+[reddit_post]: <https://redd.it/c8drjo>

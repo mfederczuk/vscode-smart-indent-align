@@ -8,9 +8,6 @@
 		"Formatters",
 		"Other"
 	],
-	"engines": {
-		"vscode": "^1.70.0"
-	},
 	"homepage": "https://github.com/mfederczuk/vscide-smart-indent-align#readme",
 	"bugs": {
 		"url": "https://github.com/mfederczuk/vscide-smart-indent-align/issues",
@@ -67,13 +64,16 @@
 		"lint": "npm run eslint",
 		"build": "npm run tsc",
 		"build-watch": "npm run tsc -- --watch",
-		"clean": "rm -rf out",
+		"clean": "rm -rf -- out",
 		"rebuild": "npm run clean && npm run build",
 
 		"prepare": "npm run clean && npm run lint && npm run build",
 		"vscode:prepublish": "npm run prepare",
 
 		"package": "npm run vsce -- package --allow-star-activation"
+	},
+	"engines": {
+		"vscode": "^1.70.0"
 	},
 	"devDependencies": {
 		"@eslint/js": "^9.22.0",
